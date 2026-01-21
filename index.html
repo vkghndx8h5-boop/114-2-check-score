@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>成績查詢系統</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2f3, #dfe9f3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 480px;
+      padding: 28px 26px 32px;
+      border-radius: 14px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: 22px;
+      font-weight: 600;
+      text-align: center;
+      color: #222;
+    }
+
+    .desc {
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px 14px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: #4f8cff;
+      box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.15);
+    }
+
+    button {
+      padding: 12px 18px;
+      font-size: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #4f8cff;
+      color: #ffffff;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.1s;
+      box-shadow: 0 4px 10px rgba(79, 140, 255, 0.25);
+    }
+
+    button:hover {
+      background: #3f7ae0;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 8px rgba(79, 140, 255, 0.25);
+    }
+
+    .result {
+      margin-top: 18px;
+      font-size: 15px;
+      color: #333;
+      line-height: 1.9;
+      border-top: 1px solid #eee;
+      padding-top: 14px;
+    }
+
+    .name {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 0;
+    }
+
+    .label {
+      color: #666;
+    }
+
+    .value {
+      font-weight: 500;
+      color: #111;
+    }
+
+    .divider {
+      border-top: 1px dashed #ddd;
+      margin: 10px 0;
+    }
+
+    .total {
+      margin-top: 6px;
+      padding-top: 10px;
+      border-top: 2px solid #4f8cff;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .error {
+      color: #d9534f;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>成績查詢系統</h1>
+    <div class="desc">請輸入身分證後 5 碼</div>
+
+    <div class="input-group">
+      <input type="text" id="idInput" placeholder="例如：12345" maxlength="5">
+      <button onclick="search()">查詢</button>
+    </div>
+
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    const data = {
+      "97869": { name: "王宇杰", quiz: 57, hw: 100, avg: 79, bonus: 14, mid1: 84, mid2: 66, final: 76, total: 91 },
+      "03559": { name: "王耀霆", quiz: 47, hw: 58, avg: 53, bonus: 7, mid1: 76, mid2: 62, final: 82, total: 74 },
+      "37665": { name: "江至家", quiz: 70, hw: 50, avg: 60, bonus: 0, mid1: 82, mid2: 79, final: 78, total: 72 },
+      "09018": { name: "何建鋐", quiz: 37, hw: 42, avg: 40, bonus: 3, mid1: 50, mid2: 60, final: 48, total: 50 },
+      "82355": { name: "余定穎", quiz: 36, hw: 67, avg: 52, bonus: 0, mid1: 76, mid2: 80, final: 82, total: 70 },
+      "43058": { name: "吳鎧宸", quiz: 23, hw: 50, avg: 37, bonus: 6, mid1: 58, mid2: 62, final: 64, total: 60 },
+      "68807": { name: "呂居璋", quiz: 74, hw: 42, avg: 58, bonus: 9, mid1: 84, mid2: 84, final: 68, total: 78 },
+      "70629": { name: "呂秉宏", quiz: 45, hw: 21, avg: 33, bonus: 6, mid1: 64, mid2: 72, final: 58, total: 57 },
+      "42202": { name: "李旻翰", quiz: 41, hw: 8, avg: 25, bonus: 1, mid1: 70, mid2: 68, final: 76, total: 55 },
+      "10742": { name: "李嘉鑫", quiz: 6, hw: 100, avg: 53, bonus: 4, mid1: 30, mid2: 27, final: 28, total: 42 },
+      "46639": { name: "洪浩原", quiz: 68, hw: 54, avg: 61, bonus: 14, mid1: 48, mid2: 52, final: 66, total: 73 },
+      "42695": { name: "張宸禎", quiz: 66, hw: 100, avg: 83, bonus: 6, mid1: 92, mid2: 77, final: 82, total: 90 },
+      "11929": { name: "梁鈞智", quiz: 27, hw: 42, avg: 35, bonus: 6, mid1: 38, mid2: 40, final: 38, total: 43 },
+      "71126": { name: "郭峯誠", quiz: 42, hw: 100, avg: 71, bonus: 10, mid1: 72, mid2: 57, final: 66, total: 78 },
+      "01859": { name: "陳士傑", quiz: 83, hw: 70, avg: 77, bonus: 14, mid1: 67, mid2: 59, final: 76, total: 87 },
+      "01262": { name: "陳琮諺", quiz: 38, hw: 63, avg: 51, bonus: 14, mid1: 46, mid2: 56, final: 46, total: 64 },
+      "18633": { name: "陳鵬守", quiz: 42, hw: 54, avg: 48, bonus: 8, mid1: 88, mid2: 82, final: 90, total: 80 },
+      "68165": { name: "曾梓豪", quiz: 63, hw: 54, avg: 59, bonus: 5, mid1: 60, mid2: 73, final: 58, total: 66 },
+      "01466": { name: "黃裕倡", quiz: 10, hw: 0, avg: 5, bonus: 1, mid1: 54, mid2: 62, final: 36, total: 31 },
+      "27696": { name: "葉祐安", quiz: 36, hw: 58, avg: 47, bonus: 0, mid1: 66, mid2: 64, final: 64, total: 58 },
+      "98302": { name: "劉丞祥", quiz: 46, hw: 38, avg: 42, bonus: 4, mid1: 46, mid2: 62, final: 62, total: 56 },
+      "97243": { name: "蔡典罡", quiz: 37, hw: 100, avg: 69, bonus: 3, mid1: 48, mid2: 58, final: 48, total: 61 },
+      "19327": { name: "蔡韋智", quiz: 20, hw: 42, avg: 31, bonus: 3, mid1: 46, mid2: 54, final: 46, total: 44 },
+      "03791": { name: "鄭群叡", quiz: 13, hw: 0, avg: 7, bonus: 3, mid1: 8, mid2: 14, final: 28, total: 18 },
+      "52700": { name: "盧宇峻", quiz: 64, hw: 100, avg: 82, bonus: 14, mid1: 64, mid2: 72, final: 76, total: 90 },
+      "56599": { name: "謝子硯", quiz: 21, hw: 25, avg: 23, bonus: 14, mid1: 62, mid2: 57, final: 60, total: 60 },
+      "47092": { name: "謝合鈞", quiz: 64, hw: 100, avg: 82, bonus: 10, mid1: 74, mid2: 56, final: 52, total: 78 },
+      "37996": { name: "簡嘉毅", quiz: 30, hw: 33, avg: 32, bonus: 5, mid1: 56, mid2: 52, final: 54, total: 50 },
+      "48080": { name: "羅久祐", quiz: 73, hw: 67, avg: 70, bonus: 3, mid1: 84, mid2: 86, final: 78, total: 80 },
+      "99372": { name: "蘇景利", quiz: 17, hw: 13, avg: 15, bonus: 4, mid1: 58, mid2: 58, final: 46, total: 41 },
+      "83860": { name: "張若涵", quiz: 51, hw: 42, avg: 47, bonus: 4, mid1: 80, mid2: 76, final: 64, total: 65 },
+      "65035": { name: "郭家菱", quiz: 40, hw: 38, avg: 39, bonus: 5, mid1: 60, mid2: 60, final: 48, total: 53 },
+      "85096": { name: "鄭伊珊", quiz: 65, hw: 100, avg: 83, bonus: 6, mid1: 82, mid2: 73, final: 78, total: 86 }
+    };
+
+    function search() {
+      const id = document.getElementById("idInput").value.trim();
+      const resultDiv = document.getElementById("result");
+
+      if (!id) {
+        resultDiv.innerHTML = `<div class="error">請輸入身分證後 5 碼</div>`;
+        return;
+      }
+
+      if (data[id]) {
+        const s = data[id];
+        resultDiv.innerHTML = `
+          <div class="name">${s.name}</div>
+
+          <div class="row"><div class="label">小考 + 龍騰</div><div class="value">${s.quiz}</div></div>
+          <div class="row"><div class="label">作業平常表現</div><div class="value">${s.hw}</div></div>
+          <div class="row"><div class="label">兩項平均</div><div class="value">${s.avg}</div></div>
+          <div class="row"><div class="label">加分</div><div class="value">${s.bonus}</div></div>
+
+          <div class="divider"></div>
+
+          <div class="row"><div class="label">期中考 1</div><div class="value">${s.mid1}</div></div>
+          <div class="row"><div class="label">期中考 2</div><div class="value">${s.mid2}</div></div>
+          <div class="row"><div class="label">期末考</div><div class="value">${s.final}</div></div>
+
+          <div class="total row"><div class="label">總學期成績</div><div class="value">${s.total}</div></div>
+        `;
+      } else {
+        resultDiv.innerHTML = `<div class="error">查無資料，請確認輸入是否正確</div>`;
+      }
+    }
+  </script>
+
+</body>
+</html>
